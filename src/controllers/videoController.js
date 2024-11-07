@@ -1,8 +1,5 @@
-const { saveVideoUrl, getVideos, deleteVideo } = require('../models/Video');
+const { saveVideoUrl, getVideos,updateVideo, deleteVideo } = require('../models/Video');
 const { getGridFSBucket } = require('../config/dbMongo');
-
-const videoModel = require('../models/Video');
-console.log(videoModel);
 
 const uploadVideo = async (req, res) => {
   const { title, description, publication_date } = req.body;
@@ -49,6 +46,44 @@ const fetchVideos = async (req, res) => {
   }
 };
 
+const editVideo = async (req, res) => {
+  const { title, description } = req.body;
+  const videoFile = req.file;
+
+  if (!title) {
+    return res.status(400).json({ error: 'El campo "title" es obligatorio.' });
+  }
+
+  try {
+    if (videoFile) {
+
+      const bucket = getGridFSBucket();
+      const uploadStream = bucket.openUploadStream(title);
+      uploadStream.end(videoFile.buffer);
+
+      uploadStream.on('finish', async () => {
+        const videoUrl = `${req.protocol}://${req.get('host')}/api/videos/${uploadStream.id}`;
+        await updateVideo(req.params.id, title, description, videoUrl);
+      });
+
+      uploadStream.on('error', (error) => {
+        console.error("Error al subir el video:", error);
+        return res.status(500).json({ error: 'Error al subir el video', details: error.message });
+      });
+    } else {
+
+      const updatedVideo = await updateVideo(req.params.id, title, description);
+      if (!updatedVideo) {
+        return res.status(404).json({ error: 'Video no encontrado' });
+      }
+      return res.status(200).json({ message: 'Video actualizado exitosamente', video: updatedVideo });
+    }
+  } catch (error) {
+    console.error("Error al actualizar el video:", error);
+    res.status(500).json({ error: 'Error al actualizar el video', details: error.message });
+  }
+};
+
 const removeVideo = async (req, res) => {
   const { id } = req.params;
 
@@ -60,4 +95,4 @@ const removeVideo = async (req, res) => {
   }
 };
 
-module.exports = { uploadVideo, fetchVideos, removeVideo};
+module.exports = { uploadVideo, fetchVideos,editVideo, removeVideo};

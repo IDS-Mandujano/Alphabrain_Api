@@ -1,14 +1,15 @@
 const express = require('express');
-const { uploadVideo, fetchVideos, removeVideo } = require('../controllers/videoController');
+const { uploadVideo, fetchVideos,editVideo, removeVideo } = require('../controllers/videoController');
 const { getGridFSBucket } = require('../config/dbMongo');
 const multer = require('multer');
 const { ObjectId } = require('mongodb');
 
 const router = express.Router();
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.post('/upload', upload.single('video'), uploadVideo);
+router.put('/:id', upload.single('video'), editVideo);
+router.put('/:id', editVideo);
 router.delete('/:id', removeVideo);
 router.get('/', fetchVideos);
 
