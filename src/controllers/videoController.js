@@ -56,6 +56,7 @@ const editVideo = async (req, res) => {
 
   try {
     if (videoFile) {
+      res.status(202).json({ message: 'Edición en proceso, el video se actualizará en breve.' });
 
       const bucket = getGridFSBucket();
       const uploadStream = bucket.openUploadStream(title);
@@ -68,16 +69,16 @@ const editVideo = async (req, res) => {
 
       uploadStream.on('error', (error) => {
         console.error("Error al subir el video:", error);
-        return res.status(500).json({ error: 'Error al subir el video', details: error.message });
       });
-    } else {
 
+    } else {
       const updatedVideo = await updateVideo(req.params.id, title, description);
       if (!updatedVideo) {
         return res.status(404).json({ error: 'Video no encontrado' });
       }
       return res.status(200).json({ message: 'Video actualizado exitosamente', video: updatedVideo });
     }
+
   } catch (error) {
     console.error("Error al actualizar el video:", error);
     res.status(500).json({ error: 'Error al actualizar el video', details: error.message });
