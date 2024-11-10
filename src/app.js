@@ -15,6 +15,9 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+//url local-Front : http://localhost:4200/
+//url EC2-Front : http://34.236.126.231
+
 app.use(cors({
   origin: 'http://localhost:4200',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
